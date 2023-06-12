@@ -5,11 +5,11 @@ set -euo pipefail
 while [[ $# -gt 0 ]]; do
 	case "$1" in
 	-s | --source)
-		LINK_SOURCE_DIR="$2"
+		SOURCE_DIR="$2"
 		shift 2
 		;;
 	-t | --target)
-		LINK_TARGET_DIRS+=("$2")
+		TARGET_DIR+=("$2")
 		shift 2
 		;;
 	-f | --force)
@@ -25,44 +25,72 @@ done
 
 # Create the .env file with default values if it doesn't exist
 if [[ ! -f .env ]]; then
+	# echo "creating
 	echo "# Comment out the source and targets in the .env file" >.env
-	echo "LINK_SOURCE_DIR=" >>.env
-	echo "LINK_TARGET_DIRS=(" >>.env
+	echo "# SOURCE_DIR=" >>.env
+	echo "# TARGET_DIR=(" >>.env
 	echo "# \"/path/to/target/directory\"" >>.env
-	echo ")" >>.env
-	echo "FORCE=false" >>.env
+	echo "# )" >>.env
+	echo "# FORCE=false" >>.env
 fi
 
 # Read the .env file and set default values for environment variables
 source .env
-LINK_SOURCE_DIR="${LINK_SOURCE_DIR:-}"
-LINK_TARGET_DIRS=("${LINK_TARGET_DIRS[@]:-}")
+SOURCE_DIR="${SOURCE_DIR:-}"
+TARGET_DIR=("${TARGET_DIR[@]:-}")
 FORCE="${FORCE:-false}"
 
 # Update the .env file with the new values
-echo "LINK_SOURCE_DIR=\"$LINK_SOURCE_DIR\"" >.env.tmp
-echo "LINK_TARGET_DIRS=(" >>.env.tmp
-for target_dir in "${LINK_TARGET_DIRS[@]}"; do
-	echo "  \"$target_dir\"" >>.env.tmp
-done
-echo ")" >>.env.tmp
-echo "FORCE=$FORCE" >>.env.tmp
+echo "# Comment out the source and targets in the .env file" >.env.tmp
+if [[ -n "$SOURCE_DIR" ]]; then
+	echo "SOURCE_DIR=\"$SOURCE_DIR\"" >>.env.tmp
+else
+	echo "# SOURCE_DIR=" >>.env.tmp
+fi
+if [[ ${#TARGET_DIR[@]} -gt 0 ]]; then
+	echo "TARGET_DIR=(" >>.env.tmp
+	for target_dir in "${TARGET_DIR[@]}"; do
+		if [[ -n "$target_dir" ]]; then
+			echo "  \"$target_dir\"" >>.env.tmp
+		fi
+	done
+	echo ")" >>.env.tmp
+else
+	echo "# TARGET_DIR=(" >>.env.tmp
+	echo "# \"/path/to/target/directory\"" >>.env.tmp
+	echo "# )" >>.env.tmp
+fi
+if [[ -n "$FORCE" ]]; then
+	echo "FORCE=$FORCE" >>.env.tmp
+else
+	echo "# FORCE=false" >>.env.tmp
+fi
 mv .env.tmp .env
 
+# exit if the source directory is not set
+if [[ -z "$SOURCE_DIR" ]]; then
+	echo "Error: source directory not set" >&2
+	exit 1
+fi
+# exit if the target directories are not set or empty
+if [[ ${#TARGET_DIR[@]} -eq 0 ]]; then
+	echo "Error: target directories not set" >&2
+	exit 1
+fi
 # Create the target directories if they don't exist
-for target_dir in "${LINK_TARGET_DIRS[@]}"; do
+for target_dir in "${TARGET_DIR[@]}"; do
 	mkdir -p "$target_dir" || echo "$target_dir already exists"
 done
 
 # Iterate over the files in the source directory
-for target_dir in "${LINK_TARGET_DIRS[@]}"; do
+for target_dir in "${TARGET_DIR[@]}"; do
 	# Make sure the target directory exists
 	if [[ ! -d "$target_dir" ]]; then
 		echo "Error: $target_dir does not exist" >&2
 		continue
 	fi
 	# Create a symbolic link in each target directory
-	for file in "$LINK_SOURCE_DIR"/*; do
+	for file in "$SOURCE_DIR"/*; do
 		echo
 		# Make sure the file exists
 		if [[ ! -f "$file" ]]; then
@@ -97,5 +125,3 @@ for target_dir in "${LINK_TARGET_DIRS[@]}"; do
 	echo
 	echo "===================="
 done
-
-echo "Symbolic links created successfully!"
