@@ -25,6 +25,10 @@ else
 			shift
 			shift
 			;;
+		-f | --force)
+			FORCE=true
+			shift
+			;;
 		*)
 			echo "Unknown option: $1" >&2
 			exit 1
@@ -79,9 +83,14 @@ for target_dir in "${TARGET_DIRS[@]}"; do
 		echo "File name: $file_name"
 		# Check if a symbolic link already exists
 		if [[ -L "$target_dir/$file_name" ]]; then
-			echo "Warning: symbolic link already exists in $target_dir" >&2
-			ls -lh "$target_dir/$file_name"
-			continue
+			if [[ "$FORCE" == true ]]; then
+				echo "Overwriting symbolic link in $target_dir"
+				rm "$target_dir/$file_name"
+			else
+				echo "Warning: symbolic link already exists in $target_dir" >&2
+				ls -lh "$target_dir/$file_name"
+				continue
+			fi
 		fi
 		# Check if a file with the same name already exists
 		if [[ -e "$target_dir/$file_name" ]]; then
