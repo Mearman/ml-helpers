@@ -1,0 +1,51 @@
+name: Download and Commit CSV
+
+on:
+  schedule:
+    - cron: "0 0 * * *" # Run every day at midnight
+  push:
+    branches: ["main"]
+
+env:
+  CSV_URL: ${{ secrets.CSV_URL }}
+  CSV_DESTINATION: models.csv
+
+permissions:
+  contents: write
+
+jobs:
+  download-and-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Download CSV
+        run: |
+          CSV_DIR=$(dirname "$CSV_DESTINATION")
+          mkdir -p "$CSV_DIR"
+          curl -o "$CSV_DESTINATION" -L "$CSV_URL"
+
+      - name: Verify CSV
+        run: |
+          if ! file ${{ env.CSV_DESTINATION }} | grep -q "CSV"; then
+            echo "Downloaded file is not a CSV"
+            exit 1
+          fi
+
+      - name: Check for changes
+        id: git-check
+        run: |
+          git config --global user.email "joseph@mearman.co.uk"
+          git config --global user.name "JoeBot"
+          git add ${{ env.CSV_DESTINATION }}
+          if git diff-index --quiet HEAD --; then
+            echo "No changes to commit"
+            exit 0
+          fi
+
+      - name: Commit changes
+        if: steps.git-check.outcome == 'success'
+        run: |
+          git commit -m "Update ${{ env.CSV_DESTINATION }}"
+          git push
