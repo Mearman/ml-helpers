@@ -10,8 +10,8 @@ while [[ $# -gt 0 ]]; do
 		shift
 		shift
 		;;
-	-t | --target-dirs)
-		TARGET_DIRS=("$2")
+	-t | --target-dir)
+		TARGET_DIRS+=("$2")
 		shift
 		shift
 		;;
