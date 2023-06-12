@@ -22,6 +22,18 @@ while [[ $# -gt 0 ]]; do
 	esac
 done
 
+# Load environment variables from file if no command line arguments are passed
+if [[ $# -eq 0 ]]; then
+	if [ -f sample.env ]; then
+		source sample.env
+	else
+		echo "Error: sample.env file not found" >&2
+		echo "Creating env file from sample.env"
+		cp sample.env env
+		exit 1
+	fi
+fi
+
 # Check if source directory is specified
 if [[ -z "${SOURCE_DIR:-}" ]]; then
 	echo "Error: source directory not specified" >&2
