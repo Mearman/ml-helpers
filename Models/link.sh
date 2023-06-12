@@ -2,29 +2,52 @@
 set -euo pipefail
 
 # Parse command line arguments
-if [[ $# -lt 2 ]]; then
-	echo "Usage: $0 <source_dir> <target_dir> [<target_dir> ...]" >&2
-	echo "Creating .env file with default values" >&2
+while [[ $# -gt 0 ]]; do
+	case "$1" in
+	-s | --source)
+		LINK_SOURCE_DIR="$2"
+		shift 2
+		;;
+	-t | --target)
+		LINK_TARGET_DIRS+=("$2")
+		shift 2
+		;;
+	-f | --force)
+		FORCE=true
+		shift
+		;;
+	*)
+		echo "Usage: $0 [-s|--source <source_dir>] [-t|--target <target_dir>] [-f|--force]" >&2
+		exit 1
+		;;
+	esac
+done
+
+# Create the .env file with default values if it doesn't exist
+if [[ ! -f .env ]]; then
 	echo "# Comment out the source and targets in the .env file" >.env
 	echo "LINK_SOURCE_DIR=" >>.env
 	echo "LINK_TARGET_DIRS=(" >>.env
 	echo "# \"/path/to/target/directory\"" >>.env
 	echo ")" >>.env
 	echo "FORCE=false" >>.env
-else
-	LINK_SOURCE_DIR="$1"
-	shift
-	LINK_TARGET_DIRS=("$@")
-	FORCE=false
 fi
 
 # Read the .env file and set default values for environment variables
-if [[ -f .env ]]; then
-	source .env
-fi
+source .env
 LINK_SOURCE_DIR="${LINK_SOURCE_DIR:-}"
 LINK_TARGET_DIRS=("${LINK_TARGET_DIRS[@]:-}")
 FORCE="${FORCE:-false}"
+
+# Update the .env file with the new values
+echo "LINK_SOURCE_DIR=\"$LINK_SOURCE_DIR\"" >.env.tmp
+echo "LINK_TARGET_DIRS=(" >>.env.tmp
+for target_dir in "${LINK_TARGET_DIRS[@]}"; do
+	echo "  \"$target_dir\"" >>.env.tmp
+done
+echo ")" >>.env.tmp
+echo "FORCE=$FORCE" >>.env.tmp
+mv .env.tmp .env
 
 # Create the target directories if they don't exist
 for target_dir in "${LINK_TARGET_DIRS[@]}"; do
