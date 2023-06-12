@@ -1,7 +1,10 @@
 #!/bin/bash
 set -euo pipefail
 
-# Set default values for environment variables
+# Read the .env file and set default values for environment variables
+if [[ -f .env ]]; then
+	source .env
+fi
 LINK_SOURCE_DIR="${LINK_SOURCE_DIR:-}"
 LINK_TARGET_DIRS=("${LINK_TARGET_DIRS[@]:-}")
 
@@ -44,7 +47,7 @@ fi
 
 # Create the .env file
 echo "# Comment out the source and targets in the .env file" >.env
-echo "LINK_SOURCE_DIR=" >>.env
+echo "LINK_SOURCE_DIR=$LINK_SOURCE_DIR" >>.env
 echo "LINK_TARGET_DIRS=(" >>.env
 for target_dir in "${LINK_TARGET_DIRS[@]}"; do
 	echo "\"$target_dir\"" >>.env
