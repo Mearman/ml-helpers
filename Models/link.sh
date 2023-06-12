@@ -1,58 +1,30 @@
 #!/bin/bash
 set -euo pipefail
 
+# Parse command line arguments
+if [[ $# -lt 2 ]]; then
+	echo "Usage: $0 <source_dir> <target_dir> [<target_dir> ...]" >&2
+	echo "Creating .env file with default values" >&2
+	echo "# Comment out the source and targets in the .env file" >.env
+	echo "LINK_SOURCE_DIR=" >>.env
+	echo "LINK_TARGET_DIRS=(" >>.env
+	echo "# \"/path/to/target/directory\"" >>.env
+	echo ")" >>.env
+	echo "FORCE=false" >>.env
+else
+	LINK_SOURCE_DIR="$1"
+	shift
+	LINK_TARGET_DIRS=("$@")
+	FORCE=false
+fi
+
 # Read the .env file and set default values for environment variables
 if [[ -f .env ]]; then
 	source .env
 fi
 LINK_SOURCE_DIR="${LINK_SOURCE_DIR:-}"
 LINK_TARGET_DIRS=("${LINK_TARGET_DIRS[@]:-}")
-
-# Parse command line arguments
-while [[ $# -gt 0 ]]; do
-	key="$1"
-	case $key in
-	-s | --source-dir)
-		LINK_SOURCE_DIR="$2"
-		shift
-		shift
-		;;
-	-t | --target-dir)
-		LINK_TARGET_DIRS+=("$2")
-		shift
-		shift
-		;;
-	-f | --force)
-		FORCE=true
-		shift
-		;;
-	*)
-		echo "Unknown option: $1" >&2
-		exit 1
-		;;
-	esac
-done
-
-# Check if source directory is specified
-if [[ -z "${LINK_SOURCE_DIR:-}" ]]; then
-	echo "Error: source directory not specified" >&2
-	exit 1
-fi
-
-# Check if target directories are specified
-if [[ ${#LINK_TARGET_DIRS[@]} -eq 0 ]]; then
-	echo "Error: target directories not specified" >&2
-	exit 1
-fi
-
-# Create the .env file
-echo "# Comment out the source and targets in the .env file" >.env
-echo "LINK_SOURCE_DIR=$LINK_SOURCE_DIR" >>.env
-echo "LINK_TARGET_DIRS=(" >>.env
-for target_dir in "${LINK_TARGET_DIRS[@]}"; do
-	echo "\"$target_dir\"" >>.env
-done
-echo ")" >>.env
+FORCE="${FORCE:-false}"
 
 # Create the target directories if they don't exist
 for target_dir in "${LINK_TARGET_DIRS[@]}"; do
