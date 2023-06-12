@@ -9,6 +9,7 @@ on:
 env:
   CSV_URL: ${{ secrets.CSV_URL }}
   CSV_DESTINATION: models.csv
+  MD_DESTINATION: ./README.md
 
 permissions:
   contents: write
@@ -43,6 +44,14 @@ jobs:
             echo "No changes to commit"
             exit 0
           fi
+
+      - name: Convert CSV to Markdown
+        run: |
+          npm install -g csv2md
+          # csv2md ${{ env.CSV_DESTINATION }} > ${CSV_DESTINATION%.*}.md
+          csv2md ${{ env.CSV_DESTINATION }} > ${{ env.MD_DESTINATION }}
+          git add ${{ env.MD_DESTINATION }}
+        continue-on-error: true
 
       - name: Commit changes
         if: steps.git-check.outcome == 'success'
