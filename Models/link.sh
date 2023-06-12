@@ -1,6 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
+# Set default values
+env_file=".env"
+
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
 	case "$1" in
@@ -20,8 +23,12 @@ while [[ $# -gt 0 ]]; do
 		DEBUG=true
 		shift
 		;;
+	-e | --env)
+		env_file="$2"
+		shift 2
+		;;
 	*)
-		echo "Usage: $0 [-s|--source <source_dir>] [-t|--target <target_dir>] [-f|--force] [-d|--debug]" >&2
+		echo "Usage: $0 [-s|--source <source_dir>] [-t|--target <target_dir>] [-f|--force] [-d|--debug] [-e|--env <env_file>]" >&2
 		exit 1
 		;;
 	esac
@@ -33,18 +40,18 @@ if [[ "${DEBUG:-false}" == true ]]; then
 fi
 
 # Create the .env file with default values if it doesn't exist
-if [[ ! -f .env ]]; then
+if [[ ! -f "$env_file" ]]; then
 	# echo "creating
-	echo "# Comment out the source and targets in the .env file" >.env
-	echo "# SOURCE_DIR=" >>.env
-	echo "# TARGET_DIR=(" >>.env
-	echo "# \"/path/to/target/directory\"" >>.env
-	echo "# )" >>.env
-	echo "# FORCE=false" >>.env
+	echo "# Comment out the source and targets in the .env file" >"$env_file"
+	echo "# SOURCE_DIR=" >>"$env_file"
+	echo "# TARGET_DIR=(" >>"$env_file"
+	echo "# \"/path/to/target/directory\"" >>"$env_file"
+	echo "# )" >>"$env_file"
+	echo "# FORCE=false" >>"$env_file"
 fi
 
 # Read the .env file and set default values for environment variables
-source .env
+source "$env_file"
 SOURCE_DIR="${SOURCE_DIR:-}"
 TARGET_DIR=("${TARGET_DIR[@]:-}")
 FORCE="${FORCE:-false}"
@@ -70,32 +77,33 @@ else
 	echo "Error: target directory not set" >&2
 	exit 1
 fi
+
 # Update the .env file with the new values
-echo "# Comment out the source and targets in the .env file" >.env.tmp
+echo "# Comment out the source and targets in the .env file" >"$env_file.tmp"
 if [[ -n "$SOURCE_DIR" ]]; then
-	echo "SOURCE_DIR=\"$SOURCE_DIR\"" >>.env.tmp
+	echo "SOURCE_DIR=\"$SOURCE_DIR\"" >>"$env_file.tmp"
 else
-	echo "# SOURCE_DIR=" >>.env.tmp
+	echo "# SOURCE_DIR=" >>"$env_file.tmp"
 fi
 if [[ ${#TARGET_DIR[@]} -gt 0 ]]; then
-	echo "TARGET_DIR=(" >>.env.tmp
+	echo "TARGET_DIR=(" >>"$env_file.tmp"
 	for target_dir in "${TARGET_DIR[@]}"; do
 		if [[ -n "$target_dir" ]]; then
-			echo "  \"$target_dir\"" >>.env.tmp
+			echo "  \"$target_dir\"" >>"$env_file.tmp"
 		fi
 	done
-	echo ")" >>.env.tmp
+	echo ")" >>"$env_file.tmp"
 else
-	echo "# TARGET_DIR=(" >>.env.tmp
-	echo "# \"/path/to/target/directory\"" >>.env.tmp
-	echo "# )" >>.env.tmp
+	echo "# TARGET_DIR=(" >>"$env_file.tmp"
+	echo "# \"/path/to/target/directory\"" >>"$env_file.tmp"
+	echo "# )" >>"$env_file.tmp"
 fi
 if [[ -n "$FORCE" ]]; then
-	echo "FORCE=$FORCE" >>.env.tmp
+	echo "FORCE=$FORCE" >>"$env_file.tmp"
 else
-	echo "# FORCE=false" >>.env.tmp
+	echo "# FORCE=false" >>"$env_file.tmp"
 fi
-mv .env.tmp .env
+mv "$env_file.tmp" "$env_file"
 
 # exit if the source directory is not set
 if [[ -z "$SOURCE_DIR" ]]; then
