@@ -1,13 +1,36 @@
 #!/bin/bash
 set -euo pipefail
 
-# Load environment variables from file
-if [ -f sample.env ]; then
-	source sample.env
-else
-	echo "Error: sample.env file not found" >&2
-	echo "Creating env file from sample.env"
-	cp sample.env env
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+	key="$1"
+	case $key in
+	-s | --source-dir)
+		SOURCE_DIR="$2"
+		shift
+		shift
+		;;
+	-t | --target-dirs)
+		TARGET_DIRS=("$2")
+		shift
+		shift
+		;;
+	*)
+		echo "Unknown option: $1" >&2
+		exit 1
+		;;
+	esac
+done
+
+# Check if source directory is specified
+if [[ -z "${SOURCE_DIR:-}" ]]; then
+	echo "Error: source directory not specified" >&2
+	exit 1
+fi
+
+# Check if target directories are specified
+if [[ ${#TARGET_DIRS[@]} -eq 0 ]]; then
+	echo "Error: target directories not specified" >&2
 	exit 1
 fi
 
