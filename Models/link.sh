@@ -1,27 +1,6 @@
 #!/bin/bash
 set -euo pipefail
 
-# Parse command line arguments
-while [[ $# -gt 0 ]]; do
-	key="$1"
-	case $key in
-	-s | --source-dir)
-		SOURCE_DIR="$2"
-		shift
-		shift
-		;;
-	-t | --target-dir)
-		TARGET_DIRS+=("$2")
-		shift
-		shift
-		;;
-	*)
-		echo "Unknown option: $1" >&2
-		exit 1
-		;;
-	esac
-done
-
 # Load environment variables from file if no command line arguments are passed
 if [[ $# -eq 0 ]]; then
 	if [ -f sample.env ]; then
@@ -30,17 +9,45 @@ if [[ $# -eq 0 ]]; then
 		echo "Error: sample.env file not found" >&2
 		echo "Creating env file from sample.env"
 		cp sample.env env
-		exit 1
 	fi
+else
+	# Parse command line arguments
+	while [[ $# -gt 0 ]]; do
+		key="$1"
+		case $key in
+		-s | --source-dir)
+			SOURCE_DIR="$2"
+			shift
+			shift
+			;;
+		-t | --target-dir)
+			TARGET_DIRS+=("$2")
+			shift
+			shift
+			;;
+		*)
+			echo "Unknown option: $1" >&2
+			exit 1
+			;;
+		esac
+	done
 fi
 
 # Check if source directory is specified
+if [[ -z "${SOURCE_DIR:-}" ]]; then
+	SOURCE_DIR="${LINK_SOURCE_DIR:-}"
+fi
+
 if [[ -z "${SOURCE_DIR:-}" ]]; then
 	echo "Error: source directory not specified" >&2
 	exit 1
 fi
 
 # Check if target directories are specified
+if [[ ${#TARGET_DIRS[@]} -eq 0 ]]; then
+	TARGET_DIRS=(${LINK_TARGET_DIRS:-})
+fi
+
 if [[ ${#TARGET_DIRS[@]} -eq 0 ]]; then
 	echo "Error: target directories not specified" >&2
 	exit 1
