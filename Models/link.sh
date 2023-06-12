@@ -16,12 +16,21 @@ while [[ $# -gt 0 ]]; do
 		FORCE=true
 		shift
 		;;
+	-d | --debug)
+		DEBUG=true
+		shift
+		;;
 	*)
-		echo "Usage: $0 [-s|--source <source_dir>] [-t|--target <target_dir>] [-f|--force]" >&2
+		echo "Usage: $0 [-s|--source <source_dir>] [-t|--target <target_dir>] [-f|--force] [-d|--debug]" >&2
 		exit 1
 		;;
 	esac
 done
+
+# Enable debug mode if the debug flag is set
+if [[ "${DEBUG:-false}" == true ]]; then
+	set -x
+fi
 
 # Create the .env file with default values if it doesn't exist
 if [[ ! -f .env ]]; then
@@ -40,6 +49,27 @@ SOURCE_DIR="${SOURCE_DIR:-}"
 TARGET_DIR=("${TARGET_DIR[@]:-}")
 FORCE="${FORCE:-false}"
 
+# exit if the source directory is not set
+if [[ -z "$SOURCE_DIR" ]]; then
+	echo "Error: source directory not set" >&2
+	exit 1
+fi
+
+# Resolve the real paths if they are not empty
+if [[ -n "$SOURCE_DIR" ]]; then
+	SOURCE_DIR="$(realpath "$SOURCE_DIR")"
+fi
+if [[ ${#TARGET_DIR[@]} -gt 0 ]]; then
+	if [[ -n "${TARGET_DIR[*]}" ]]; then
+		TARGET_DIR=($(realpath "${TARGET_DIR[@]}"))
+	else
+		echo "Error: target directory is empty" >&2
+		exit 1
+	fi
+else
+	echo "Error: target directory not set" >&2
+	exit 1
+fi
 # Update the .env file with the new values
 echo "# Comment out the source and targets in the .env file" >.env.tmp
 if [[ -n "$SOURCE_DIR" ]]; then
