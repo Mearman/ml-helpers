@@ -1,11 +1,7 @@
 Name |  |  |  | Parameters | File | Quant method | Bits | Size | Max RAM required | Notes | Host | Owner | Repo | Repo URL | Download
 ---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---
  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 
-falcon-7B-Q4_0-ggml | 7 | B | 💾 |  | falcon-7B-Q4_0-ggml.bin | q4_0 | 4 | 4.06 GB |  | see:
-https://github.com/ggerganov/ggml/pull/231
-Falcon LLM Support · Issue #1602 · ggerganov/llama.cpp · GitHub
-https://github.com/go-skynet/LocalAI/pull/516
-support for falcon model · Issue #217 · ggerganov/ggml · GitHub
+falcon-7B-Q4_0-ggml | 7 | B | 💾 |  | falcon-7B-Q4_0-ggml.bin | q4_0 | 4 | 4.06 GB |  | see: https://github.com/ggerganov/ggml/pull/231 Falcon LLM Support · Issue #1602 · ggerganov/llama.cpp · GitHub https://github.com/go-skynet/LocalAI/pull/516 support for falcon model · Issue #217 · ggerganov/ggml · GitHub
 Falcon LLM Support · Issue #1602 · ggerganov/llama.cpp · GitHub | huggingface.co | RachidAR | falcon-7B-ggml | https://huggingface.co/RachidAR/falcon-7B-ggml | https://huggingface.co/RachidAR/falcon-7B-ggml/resolve/main/falcon-7B-Q4_0-ggml.bin
 falcon-7B-Q4_1-ggml | 7 | B | 💾 |  | falcon-7B-Q4_1-ggml.bin | q4_1 | 4 | 4.51 GB |  |  | huggingface.co | RachidAR | falcon-7B-ggml | https://huggingface.co/RachidAR/falcon-7B-ggml | https://huggingface.co/RachidAR/falcon-7B-ggml/resolve/main/falcon-7B-Q4_1-ggml.bin
 falcon-7B-Q5_0-ggml | 7 | B | 💾 |  | falcon-7B-Q5_0-ggml.bin | q4_0 | 5 | 4.96 GB |  |  | huggingface.co | RachidAR | falcon-7B-ggml | https://huggingface.co/RachidAR/falcon-7B-ggml | https://huggingface.co/RachidAR/falcon-7B-ggml/resolve/main/falcon-7B-Q5_0-ggml.bin
